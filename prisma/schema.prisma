@@ -1,0 +1,111 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model user {
+  id      BigInt      @id @default(autoincrement())
+  email   String   @unique
+  name    String
+  password String
+  phone String
+  user_address user_address[]
+  order order[] // um user (usuário) possui vários pedidos (order) -> one-to-many
+  credit_card credit_card[]
+}
+
+model user_address {
+  id     BigInt     @id @default(autoincrement())
+  user user @relation(fields: [id_user], references: [id])
+  id_user BigInt
+  address String
+  city String
+  postal_code String
+}
+
+model admin {
+  id      BigInt      @id @default(autoincrement())
+  email   String   @unique
+  name    String
+  username    String @unique
+  password String
+  status Boolean
+}
+
+model product {
+  id        BigInt      @id @default(autoincrement())
+  name     String
+  price Float
+  image Bytes? // "?" = pode ser nulo (não obrigatório)
+  description String?
+  product_category product_category @relation(fields: [id_category], references: [id])
+  id_category BigInt @unique // um produto possui apenas uma categoria -> one-to-one
+  measure_type measure_type @relation(fields: [id_measure], references: [id])
+  id_measure BigInt @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  order_items order_items[] // um produto 'está' em várias ordem_items (ordens/pedidos) -> one-to-many
+}
+
+model product_category {
+  id BigInt @id @default(autoincrement())
+  category String
+  product product?
+}
+
+model measure_type {
+  id BigInt @id @default(autoincrement())
+  type String
+  product product?
+}
+
+model order {
+  id     BigInt     @id @default(autoincrement())
+  user user @relation(fields: [id_user], references: [id])
+  id_user BigInt
+  total Float
+  order_items order_items[] // uma ordem (pedido) possui vários order_items (itens) -> one-to-many
+  user_payment user_payment[] // uma ordem (pedido) possui vários user_payment (pagamentos) -> one-to-many
+}
+
+model order_items {
+  id     BigInt     @id @default(autoincrement())
+  order order @relation(fields: [id_order], references: [id])
+  id_order BigInt
+  product product @relation(fields: [id_product], references: [id])
+  id_product BigInt
+  quantity Int
+}
+
+model user_payment {
+  id     BigInt     @id @default(autoincrement())
+  payment_type payment_type @relation(fields: [id_payment_type], references: [id])
+  id_payment_type BigInt
+  order order @relation(fields: [id_order], references: [id])
+  id_order BigInt
+  amount Float
+}
+
+model payment_type {
+  id     BigInt     @id @default(autoincrement())
+  type String
+  user_payment user_payment[] // um tipo de pagamento (payment_type) está em vários pagamentos (user_payment) -> one-to-many
+}
+
+model credit_card {
+  id BigInt @id @default(autoincrement())
+  cpf String @unique
+  cvv String
+  expire_date DateTime @db.Date // tipo de dado específico (date)
+  user user @relation(fields: [id_user], references: [id])
+  id_user BigInt
+  name String
+  number String @unique
+}
