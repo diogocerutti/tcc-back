@@ -1,11 +1,45 @@
-import { PrismaClient } from "@prisma/client";
-import { compare, hash } from "bcrypt";
+import db from "../../lib/prisma.js";
+import { findAdminByEmail, findAdminById } from "../../services/admin.js";
+import bcrypt, { compare, hash } from "bcrypt";
 
-const prisma = new PrismaClient();
+export const loginAdmin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res.status(400);
+      throw new Error("You must provide an email and a password.");
+    }
+
+    const existingAdmin = await findAdminByEmail(email);
+
+    if (!existingAdmin) {
+      res.status(400);
+      throw new Error("Invalid login credentials.");
+    }
+
+    const validPassword = await bcrypt.compare(
+      password,
+      existingAdmin.password
+    );
+    if (!validPassword) {
+      res.status(403);
+      throw new Error("Invalid login credentials. (SENHA)");
+    }
+
+    const adminFormat = JSON.stringify(existingAdmin, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    );
+
+    res.status(201).send(adminFormat);
+  } catch (error) {
+    res.status(400).json({ msg: error.message });
+  }
+};
 
 export const getAllAdmins = async (req, res) => {
   try {
-    const response = await prisma.admin.findMany({
+    const response = await db.admin.findMany({
       where: {
         status: true, // somente ativos
       },
@@ -21,7 +55,7 @@ export const getAllAdmins = async (req, res) => {
 
 export const getOneAdmin = async (req, res) => {
   try {
-    const response = await prisma.admin.findUnique({
+    const response = await db.admin.findUnique({
       where: {
         id: Number(req.params.id),
       },
@@ -38,7 +72,7 @@ export const getOneAdmin = async (req, res) => {
 export const createAdmin = async (req, res) => {
   const { username, name, email, password } = req.body;
   try {
-    const admin = await prisma.admin.create({
+    const admin = await db.admin.create({
       data: {
         username,
         name,
@@ -47,6 +81,14 @@ export const createAdmin = async (req, res) => {
         status: true,
       },
     });
+
+    const existingAdmin = await findAdminByEmail(email);
+
+    if (existingAdmin) {
+      res.status(400);
+      throw new Error("Email already in use.");
+    }
+
     const adminFormat = JSON.stringify(admin, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
     );
@@ -59,7 +101,7 @@ export const createAdmin = async (req, res) => {
 export const updateAdmin = async (req, res) => {
   const { username, name, email, password, status } = req.body;
   try {
-    const admin = await prisma.admin.update({
+    const admin = await db.admin.update({
       where: {
         id: Number(req.params.id),
       },
@@ -82,7 +124,7 @@ export const updateAdmin = async (req, res) => {
 
 export const deleteAdmin = async (req, res) => {
   try {
-    const admin = await prisma.admin.delete({
+    const admin = await db.admin.delete({
       where: {
         id: Number(req.params.id),
       },

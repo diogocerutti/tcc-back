@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  loginAdmin,
   getAllAdmins,
   getOneAdmin,
   createAdmin,
@@ -9,6 +10,7 @@ import {
 
 const router = express.Router();
 
+router.post("/admin/login", loginAdmin);
 router.get("/admin", getAllAdmins);
 router.get("/admin/:id", getOneAdmin);
 router.post("/admin", createAdmin);
