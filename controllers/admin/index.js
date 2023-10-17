@@ -31,7 +31,7 @@ export const loginAdmin = async (req, res) => {
       typeof value === "bigint" ? value.toString() : value
     );
 
-    res.status(201).send(adminFormat);
+    res.status(200).send(adminFormat);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
