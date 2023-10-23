@@ -1,12 +1,5 @@
 import express from "express";
-import {
-  loginAdmin,
-  getAllAdmins,
-  getOneAdmin,
-  createAdmin,
-  updateAdmin,
-  deleteAdmin,
-} from "../../controllers/admin/index.js";
+import { createProductCategory } from "../../controllers/productCategory";
 
 const router = express.Router();
 

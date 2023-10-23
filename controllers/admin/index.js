@@ -1,7 +1,7 @@
 import db from "../../lib/prisma.js";
 import { findAdminByEmail, findAdminById } from "../../services/admin.js";
 import bcrypt, { compare, hash } from "bcrypt";
-import cookie from "cookie";
+//import cookie from "cookie";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 
