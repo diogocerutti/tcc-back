@@ -55,7 +55,7 @@ export const loginAdmin = async (req, res) => {
       })
     );
 
-    res.status(200).json({ existingAdmin, token });
+    res.status(200).json(existingAdmin);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
