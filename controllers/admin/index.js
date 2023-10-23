@@ -44,7 +44,7 @@ export const loginAdmin = async (req, res) => {
       expiresIn: "1d",
     });
 
-    res.setHeader(
+    /*  res.setHeader(
       "Set-Cookie",
       cookie.serialize("admin", token, {
         httpOnly: true,
@@ -53,9 +53,9 @@ export const loginAdmin = async (req, res) => {
         sameSite: "strict",
         path: "/",
       })
-    );
+    ); */
 
-    res.status(200).json(existingAdmin);
+    res.status(200).json({ existingAdmin, token });
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
