@@ -7,8 +7,12 @@ import {
   updateAdmin,
   deleteAdmin,
 } from "../../controllers/admin/index.js";
+import cors from "cors";
 
 const router = express.Router();
+
+router.use(cors({ origin: "http://localhost:3000", credentials: true }));
+router.use(express.urlencoded({ extended: false }));
 
 router.post("/admin/login", loginAdmin);
 router.get("/admin", getAllAdmins);

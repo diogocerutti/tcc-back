@@ -1,6 +1,9 @@
 import db from "../../lib/prisma.js";
 import { findAdminByEmail, findAdminById } from "../../services/admin.js";
 import bcrypt, { compare, hash } from "bcrypt";
+import cookie from "cookie";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
 export const loginAdmin = async (req, res) => {
   try {
@@ -27,11 +30,32 @@ export const loginAdmin = async (req, res) => {
       throw new Error("Invalid login credentials. (SENHA)");
     }
 
-    const adminFormat = JSON.stringify(existingAdmin, (key, value) =>
+    /*const adminFormat = JSON.stringify(existingAdmin, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
+    );*/
+
+    Object.keys(existingAdmin).forEach((item) => {
+      if (typeof existingAdmin[item] === "bigint") {
+        existingAdmin[item] = existingAdmin[item].toString();
+      }
+    });
+
+    const token = jwt.sign({ existingAdmin }, process.env.SECRET, {
+      expiresIn: "1d",
+    });
+
+    res.setHeader(
+      "Set-Cookie",
+      cookie.serialize("admin", token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV !== "development",
+        maxAge: 60 * 60,
+        sameSite: "strict",
+        path: "/",
+      })
     );
 
-    res.status(200).send(adminFormat);
+    res.status(200).json({ existingAdmin, token });
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
