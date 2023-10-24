@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
-import AdminRoute from "./routes/admin/index.js";
+import AdminRoutes from "./routes/admin/index.js";
+import ProductCategoryRoutes from "./routes/productCategory/index.js";
 import cors from "cors";
 dotenv.config();
 
@@ -15,7 +16,8 @@ app.get("/", (req, res) => {
   res.json({ message: "Servidor Rodando!" });
 });
 
-app.use(AdminRoute);
+app.use(AdminRoutes);
+app.use(ProductCategoryRoutes);
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 

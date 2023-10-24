@@ -34,20 +34,34 @@ export const getOneAdmin = async (req, res) => {
 };
 
 export const createProductCategory = async (req, res) => {
-  const { category } = req.body;
   try {
+    const { category } = req.body;
+
+    if (!category) {
+      res.status(400);
+      throw new Error("Category is mandatory.");
+    }
+
+    const existingCategory = await findExistingCategory(category);
+
+    if (existingCategory) {
+      // cai aqui se for diferente de null
+      console.log(existingCategory);
+      res.status(400);
+      throw new Error("Category already exists.");
+    }
+
     const product_category = await db.product_category.create({
       data: {
         category,
       },
     });
 
-    const existingCategory = await findExistingCategory(category);
-
-    if (existingCategory) {
-      res.status(400);
-      throw new Error("Category already exists.");
-    }
+    Object.keys(product_category).forEach((item) => {
+      if (typeof product_category[item] === "bigint") {
+        product_category[item] = product_category[item].toString();
+      }
+    });
 
     res.status(200).send(product_category);
   } catch (error) {

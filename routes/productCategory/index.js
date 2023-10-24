@@ -1,13 +1,8 @@
 import express from "express";
-import { createProductCategory } from "../../controllers/productCategory";
+import { createProductCategory } from "../../controllers/productCategory/index.js";
 
 const router = express.Router();
 
-router.post("/admin/login", loginAdmin);
-router.get("/admin", getAllAdmins);
-router.get("/admin/:id", getOneAdmin);
-router.post("/admin", createAdmin);
-router.put("/admin/:id", updateAdmin);
-router.delete("/admin/:id", deleteAdmin);
+router.post("/product_category", createProductCategory);
 
 export default router;
