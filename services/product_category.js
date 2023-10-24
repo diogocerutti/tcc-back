@@ -7,3 +7,11 @@ export function findExistingCategory(category) {
     },
   });
 }
+
+export function findCategoryById(id) {
+  return db.product_category.findUnique({
+    where: {
+      id,
+    },
+  });
+}

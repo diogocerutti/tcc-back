@@ -1,33 +1,40 @@
 import db from "../../lib/prisma.js";
-import { findExistingCategory } from "../../services/product_category.js";
+import {
+  findExistingCategory,
+  findCategoryById,
+} from "../../services/product_category.js";
 
-export const getAllAdmins = async (req, res) => {
+export const getAllCategories = async (req, res) => {
   try {
-    const response = await db.admin.findMany({
-      where: {
-        status: true, // somente ativos
-      },
-    });
-    const responseFormat = JSON.stringify(response, (key, value) =>
+    const categories = await db.product_category.findMany();
+
+    const categoriesFormat = JSON.stringify(categories, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
     );
-    res.status(200).send(responseFormat);
+
+    res.status(200).send(categoriesFormat);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
 };
 
-export const getOneAdmin = async (req, res) => {
+export const getOneCategory = async (req, res) => {
   try {
-    const response = await db.admin.findUnique({
+    const category = await db.product_category.findUnique({
       where: {
         id: Number(req.params.id),
       },
     });
-    const responseFormat = JSON.stringify(response, (key, value) =>
+
+    if (category == null) {
+      throw new Error("Category not found.");
+    }
+
+    const categoryFormat = JSON.stringify(category, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
     );
-    res.status(200).send(responseFormat);
+
+    res.status(200).send(categoryFormat);
   } catch (error) {
     res.status(404).json({ msg: error.message });
   }
@@ -46,8 +53,6 @@ export const createProductCategory = async (req, res) => {
 
     if (existingCategory) {
       // cai aqui se for diferente de null
-      console.log(existingCategory);
-      res.status(400);
       throw new Error("Category already exists.");
     }
 
@@ -69,41 +74,66 @@ export const createProductCategory = async (req, res) => {
   }
 };
 
-export const updateAdmin = async (req, res) => {
-  const { username, name, email, password, status } = req.body;
+export const updateProductCategory = async (req, res) => {
   try {
-    const admin = await db.admin.update({
+    const { category } = req.body;
+
+    if (!category) {
+      throw new Error("Category is mandatory.");
+    }
+
+    const existingCategory = await findCategoryById(req.params.id);
+
+    if (!existingCategory) {
+      res.status(404);
+      throw new Error("Category not found.");
+    }
+
+    const updatedCategory = await db.product_category.update({
       where: {
         id: Number(req.params.id),
       },
       data: {
-        username: username,
-        name: name,
-        email: email,
-        password: password,
-        status: status,
+        category: category,
       },
     });
-    const adminFormat = JSON.stringify(admin, (key, value) =>
-      typeof value === "bigint" ? value.toString() : value
-    );
-    res.status(200).send(adminFormat);
+
+    Object.keys(updatedCategory).forEach((item) => {
+      if (typeof updatedCategory[item] === "bigint") {
+        updatedCategory[item] = updatedCategory[item].toString();
+      }
+    });
+
+    res.status(200).send(updatedCategory);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
 };
 
-export const deleteAdmin = async (req, res) => {
+export const deleteProductCategory = async (req, res) => {
   try {
-    const admin = await db.admin.delete({
+    const existingCategory = await findCategoryById(req.params.id);
+
+    if (!existingCategory) {
+      //res.status(404); não funcionou?
+      throw new Error("Category not found.");
+    }
+
+    const category = await db.product_category.delete({
       where: {
         id: Number(req.params.id),
       },
     });
-    const adminFormat = JSON.stringify(admin, (key, value) =>
-      typeof value === "bigint" ? value.toString() : value
-    );
-    res.status(200).json(`Usuário Admin de ID = ${admin.id} removido`);
+
+    Object.keys(category).forEach((item) => {
+      if (typeof category[item] === "bigint") {
+        category[item] = category[item].toString();
+      }
+    });
+
+    res
+      .status(200)
+      .json(`Categoria de produto "${category.category.valueOf()}" removida`);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }

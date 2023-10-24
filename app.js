@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import AdminRoutes from "./routes/admin/index.js";
 import ProductCategoryRoutes from "./routes/productCategory/index.js";
+import MeasureTypeRoutes from "./routes/measure_type/index.js";
 import cors from "cors";
 dotenv.config();
 
@@ -18,6 +19,7 @@ app.get("/", (req, res) => {
 
 app.use(AdminRoutes);
 app.use(ProductCategoryRoutes);
+app.use(MeasureTypeRoutes);
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 
