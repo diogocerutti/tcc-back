@@ -3,7 +3,6 @@ import {
   findExistingProduct,
   findProductById,
 } from "../../services/product.js";
-import { uploadImage } from "../../utils/cloudinary.js";
 import { validationResult } from "express-validator";
 
 export const getAllProducts = async (req, res) => {
@@ -55,28 +54,29 @@ export const createProduct = async (req, res) => {
 
     const result = validationResult(req);
 
-    if (result) {
-      return res.send(result);
+    if (result.isEmpty()) {
+      // se não houver erros
+      const product = await db.product.create({
+        data: {
+          name: name,
+          price: price,
+          /* image: "file:///C:/Users/diogo/OneDrive/Imagens/Capturar.png", */
+          description: description,
+          id_category: id_category,
+          id_measure: id_measure,
+        },
+      });
+
+      Object.keys(product).forEach((item) => {
+        if (typeof product[item] === "bigint") {
+          product[item] = product[item].toString();
+        }
+      });
+
+      res.status(200).send(product);
+    } else {
+      res.send(result.errors.map((err) => err.msg));
     }
-
-    const product = await db.product.create({
-      data: {
-        name: name,
-        price: price,
-        /* image: "file:///C:/Users/diogo/OneDrive/Imagens/Capturar.png", */
-        description: description,
-        id_category: id_category,
-        id_measure: id_measure,
-      },
-    });
-
-    Object.keys(product).forEach((item) => {
-      if (typeof product[item] === "bigint") {
-        product[item] = product[item].toString();
-      }
-    });
-
-    res.status(200).send(product);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
