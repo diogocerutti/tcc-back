@@ -44,6 +44,7 @@ export const getOneProduct = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     const { name, price, description, id_category, id_measure } = req.body;
+    const filepath = req.file.path;
 
     const existingProduct = await findExistingProduct(name);
 
@@ -59,11 +60,11 @@ export const createProduct = async (req, res) => {
       const product = await db.product.create({
         data: {
           name: name,
-          price: price,
-          /* image: "file:///C:/Users/diogo/OneDrive/Imagens/Capturar.png", */
+          price: Number(price),
           description: description,
-          id_category: id_category,
           id_measure: id_measure,
+          id_category: id_category,
+          image: filepath,
         },
       });
 
