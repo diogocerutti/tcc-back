@@ -1,3 +1,4 @@
+// import { static as static_ } from "express";
 import express from "express";
 import dotenv from "dotenv";
 import AdminRoutes from "./routes/admin/index.js";
@@ -9,6 +10,8 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// app.use("/images/", static_("./images"));
 
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
 app.use(express.urlencoded({ extended: false }));

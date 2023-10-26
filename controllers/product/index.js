@@ -7,13 +7,17 @@ import { validationResult } from "express-validator";
 
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await db.products.findMany();
+    const products = await db.product.findMany();
 
-    const productsFormat = JSON.stringify(products, (key, value) =>
-      typeof value === "bigint" ? value.toString() : value
-    );
+    Object.keys(products).forEach((item) => {
+      for (const key in products[item]) {
+        if (typeof products[item][key]) {
+          products[item][key] = products[item][key].toString();
+        }
+      }
+    });
 
-    res.status(200).send(productsFormat);
+    res.status(200).send(products);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -44,7 +48,7 @@ export const getOneProduct = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     const { name, price, description, id_category, id_measure } = req.body;
-    const filepath = req.file.path;
+    const { filename } = req.file;
 
     const existingProduct = await findExistingProduct(name);
 
@@ -64,7 +68,7 @@ export const createProduct = async (req, res) => {
           description: description,
           id_measure: id_measure,
           id_category: id_category,
-          image: filepath,
+          image: filename,
         },
       });
 
