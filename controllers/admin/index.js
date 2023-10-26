@@ -68,9 +68,11 @@ export const getAllAdmins = async (req, res) => {
         status: true, // somente ativos
       },
     });
+
     const responseFormat = JSON.stringify(response, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
     );
+
     res.status(200).send(responseFormat);
   } catch (error) {
     res.status(500).json({ msg: error.message });
@@ -123,8 +125,8 @@ export const createAdmin = async (req, res) => {
 };
 
 export const updateAdmin = async (req, res) => {
-  const { username, name, email, password, status } = req.body;
   try {
+    const { username, name, email, password, status } = req.body;
     const admin = await db.admin.update({
       where: {
         id: Number(req.params.id),
@@ -133,7 +135,7 @@ export const updateAdmin = async (req, res) => {
         username: username,
         name: name,
         email: email,
-        password: password,
+        password: await hash(password, 12),
         status: status,
       },
     });

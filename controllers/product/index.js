@@ -7,7 +7,8 @@ import { validationResult } from "express-validator";
 
 export const getAllProducts = async (req, res) => {
   try {
-    const products = await db.product.findMany();
+    const products =
+      await db.$queryRaw`SELECT product.id, name, price, description, image, category, measure FROM product INNER JOIN product_category ON product.id_category=product_category.id INNER JOIN measure_type ON product.id_measure=measure_type.id`;
 
     Object.keys(products).forEach((item) => {
       for (const key in products[item]) {

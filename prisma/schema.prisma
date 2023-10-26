@@ -62,7 +62,7 @@ model product_category {
 
 model measure_type {
   id BigInt @id @default(autoincrement())
-  type String
+  measure String
   product product[]
 }
 
