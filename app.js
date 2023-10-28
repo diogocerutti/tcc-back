@@ -6,6 +6,8 @@ import ProductCategoryRoutes from "./routes/productCategory/index.js";
 import MeasureTypeRoutes from "./routes/measure_type/index.js";
 import ProductRoutes from "./routes/product/index.js";
 import UserRoutes from "./routes/user/index.js";
+import OrderRoutes from "./routes/order/index.js";
+import OrderItemsRoutes from "./routes/order_items/index.js";
 import cors from "cors";
 dotenv.config();
 
@@ -27,6 +29,8 @@ app.use(ProductCategoryRoutes);
 app.use(MeasureTypeRoutes);
 app.use(ProductRoutes);
 app.use(UserRoutes);
+app.use(OrderRoutes);
+app.use(OrderItemsRoutes);
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 
