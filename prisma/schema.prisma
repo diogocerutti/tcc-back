@@ -42,14 +42,14 @@ model admin {
 model product {
   id        BigInt      @id @default(autoincrement())
   name     String
-  price Float
+  price Float?
   image String?
   description String?
   status Boolean @default(true)
-  product_category_relation product_category @relation(fields: [id_category], references: [id])
   id_category BigInt // um produto possui apenas uma categoria -> one-to-one
-  measure_type_relation measure_type @relation(fields: [id_measure], references: [id])
+  product_category_relation product_category? @relation(fields: [id_category], references: [id])
   id_measure BigInt 
+  measure_type_relation measure_type? @relation(fields: [id_measure], references: [id])
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   order_items_relation order_items[] // um produto 'está' em várias ordem_items (ordens/pedidos) -> one-to-many
@@ -74,6 +74,14 @@ model order {
   order_items_relation order_items[] // uma ordem (pedido) possui vários order_items (itens) -> one-to-many
   user_payment_relation user_payment[] // uma ordem (pedido) possui vários user_payment (pagamentos) -> one-to-many
   // user_relation user @relation(fields: [id_user], references: [id])
+  id_status BigInt
+  order_status_relation order_status? @relation(fields: [id_status], references: [id]) 
+}
+
+model order_status {
+  id     BigInt     @id @default(autoincrement())
+  status String
+  order_relation order[]
 }
 
 model order_items {

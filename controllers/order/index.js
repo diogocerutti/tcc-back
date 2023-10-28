@@ -1,16 +1,35 @@
 import db from "../../lib/prisma.js";
-import { findUserById } from "../../services/user.js";
+import { findOrderById } from "../../services/order.js";
 import { findProductById } from "../../services/product.js";
 
-export const getAllMeasures = async (req, res) => {
+export const getAllOrders = async (req, res) => {
   try {
-    const measures = await db.measure_type.findMany();
+    const orders = await db.order.findMany({
+      select: {
+        id: true,
+        total: true,
+        order_status_relation: {
+          select: {
+            status: true,
+          },
+        },
+      },
+    });
 
-    const measuresFormat = JSON.stringify(measures, (key, value) =>
-      typeof value === "bigint" ? value.toString() : value
-    );
+    Object.keys(orders).forEach((item) => {
+      if (orders[item].order_status_relation) {
+        orders[item].order_status_relation = JSON.stringify(
+          orders[item].order_status_relation
+        );
+      }
+      for (const key in orders[item]) {
+        if (typeof orders[item][key]) {
+          orders[item][key] = orders[item][key].toString();
+        }
+      }
+    });
 
-    res.status(200).send(measuresFormat);
+    res.status(200).send(orders);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -79,35 +98,51 @@ export const createOrder = async (req, res) => {
 
 export const updateOrder = async (req, res) => {
   try {
-    const { type } = req.body;
+    const { id_product, quantity } = req.body;
 
-    if (!type) {
-      throw new Error("Type is mandatory.");
+    const existingOrder = await findOrderById(req.params.id);
+
+    if (!existingOrder) {
+      throw new Error("Order not found.");
     }
 
-    const existingMeasure = await findMeasureById(req.params.id);
-
-    if (!existingMeasure) {
-      res.status(404);
-      throw new Error("Measure type not found.");
+    if (!id_product || !quantity) {
+      throw new Error("All fields are mandatory.");
     }
 
-    const updatedMeasure = await db.measure_type.update({
+    const existingProduct = await findProductById(id_product);
+
+    if (!existingProduct) {
+      throw new Error("Product not found.");
+    }
+
+    const quantityxPrice = existingProduct.price * quantity;
+
+    const updatedOrder = await db.order.update({
       where: {
         id: Number(req.params.id),
       },
       data: {
-        type: type,
+        total: { increment: quantityxPrice },
+        order_items_relation: {
+          create: [
+            {
+              id_product: id_product,
+              quantity: quantity,
+            },
+          ],
+        },
+      },
+      include: {
+        order_items_relation: true,
       },
     });
 
-    Object.keys(updatedMeasure).forEach((item) => {
-      if (typeof updatedMeasure[item] === "bigint") {
-        updatedMeasure[item] = updatedMeasure[item].toString();
-      }
-    });
+    const updatedOrderFormat = JSON.stringify(updatedOrder, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    );
 
-    res.status(200).send(updatedMeasure);
+    res.status(200).send(updatedOrderFormat);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }

@@ -68,10 +68,10 @@ export const createProduct = async (req, res) => {
           name: name,
           price: Number(price),
           description: description,
-          id_measure: id_measure,
-          id_category: id_category,
           image: filename,
           status: true,
+          id_category: id_category,
+          id_measure: id_measure,
         },
       });
 
