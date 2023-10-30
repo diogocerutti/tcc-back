@@ -84,16 +84,18 @@ export const createOrder = async (req, res) => {
       throw new Error("Products not found.");
     }
 
-    const calc =
-      existingProduct.map((p) => p.price) * req.body.map((p) => p.quantity);
+    let quantityxPrice = [];
+    let total;
 
-    console.log(calc);
+    for (let i = 0; i < existingProduct.length; i++) {
+      quantityxPrice[i] = existingProduct[i].price * req.body[i].quantity;
+    }
 
-    //const quantityxPrice = existingProduct.price * [quantity];
+    total = quantityxPrice.reduce((a, c) => a + c, 0);
 
-    /* const order = await db.order.create({
+    const order = await db.order.create({
       data: {
-        total: Number(quantityxPrice),
+        total: total,
         order_items_relation: {
           create: req.body,
         },
@@ -117,9 +119,9 @@ export const createOrder = async (req, res) => {
 
     const orderFormat = JSON.stringify(order, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
-    ); */
+    );
 
-    res.status(200).send("a");
+    res.status(200).send(orderFormat);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
