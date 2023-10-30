@@ -15,3 +15,11 @@ export function findProductById(id) {
     },
   });
 }
+
+export function findManyProducts(id) {
+  return db.product.findMany({
+    where: {
+      id: { in: id },
+    },
+  });
+}

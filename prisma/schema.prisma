@@ -17,7 +17,7 @@ model user {
   password String
   phone String
   user_address_relation user_address[]
-  // order order[] // um user (usuário) possui vários pedidos (order) -> one-to-many
+  order_relation order[] // um user (usuário) possui vários pedidos (order) -> one-to-many
   credit_card_relation credit_card[]
 }
 
@@ -69,11 +69,11 @@ model measure_type {
 
 model order {
   id     BigInt     @id @default(autoincrement())
-  // id_user BigInt
+  id_user BigInt
   total Float
   order_items_relation order_items[] // uma ordem (pedido) possui vários order_items (itens) -> one-to-many
   user_payment_relation user_payment[] // uma ordem (pedido) possui vários user_payment (pagamentos) -> one-to-many
-  // user_relation user @relation(fields: [id_user], references: [id])
+  user_relation user @relation(fields: [id_user], references: [id])
   id_status BigInt
   order_status_relation order_status? @relation(fields: [id_status], references: [id]) 
 }
