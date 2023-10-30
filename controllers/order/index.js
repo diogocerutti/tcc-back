@@ -48,11 +48,11 @@ export const getUserOrders = async (req, res) => {
   try {
     const orders = await db.order.findMany({
       where: {
-        id_user: Number(req.params.id),
+        id_user: Number(req.params.id_user),
       },
     });
 
-    const existingUser = await findUserById(req.params.id);
+    const existingUser = await findUserById(req.params.id_user);
 
     if (!existingUser) {
       throw new Error("User not found.");

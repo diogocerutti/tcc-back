@@ -23,8 +23,8 @@ model user {
 
 model user_address {
   id     BigInt     @id @default(autoincrement())
-  user_relation user @relation(fields: [id_user], references: [id])
   id_user BigInt
+  user_relation user @relation(fields: [id_user], references: [id])
   address String
   city String
   postal_code String
