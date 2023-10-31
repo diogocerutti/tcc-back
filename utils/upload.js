@@ -2,7 +2,7 @@ import multer from "multer";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "../new-tcc-front/src/img");
+    cb(null, "../Produtos");
   },
   filename: function (req, file, cb) {
     cb(null, new Date().valueOf() + "_" + file.originalname);
