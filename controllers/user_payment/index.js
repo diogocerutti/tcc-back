@@ -4,7 +4,7 @@ import { findPaymentTypeById } from "../../services/payment_type.js";
 
 export const createUserPayment = async (req, res) => {
   try {
-    const { id_payment_type, amount } = req.body;
+    const { id_payment_type } = req.body;
 
     const existingOrder = await findOrderById(req.params.id_order);
 
@@ -12,8 +12,8 @@ export const createUserPayment = async (req, res) => {
       throw new Error("Order not found.");
     }
 
-    if (!id_payment_type || !amount) {
-      throw new Error("All fields are required.");
+    if (!id_payment_type) {
+      throw new Error("Payment type is required.");
     }
 
     const existingPaymentType = await findPaymentTypeById(id_payment_type);
@@ -24,7 +24,6 @@ export const createUserPayment = async (req, res) => {
 
     const user_payment = await db.user_payment.create({
       data: {
-        amount: Number(amount),
         payment_type_relation: {
           connect: { id: Number(id_payment_type) },
         },
