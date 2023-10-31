@@ -99,7 +99,7 @@ model user_payment {
   id_payment_type BigInt
   order_relation order @relation(fields: [id_order], references: [id])
   id_order BigInt @unique
-  amount Float
+  //amount Float
 }
 
 model payment_type {
