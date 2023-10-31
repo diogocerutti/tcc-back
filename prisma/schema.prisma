@@ -72,10 +72,10 @@ model order {
   id_user BigInt
   total Float
   order_items_relation order_items[] // uma ordem (pedido) possui vários order_items (itens) -> one-to-many
-  user_payment_relation user_payment[] // uma ordem (pedido) possui vários user_payment (pagamentos) -> one-to-many
+  user_payment_relation user_payment? // uma ordem (pedido) possui vários user_payment (pagamentos) -> one-to-many
   user_relation user @relation(fields: [id_user], references: [id])
   id_status BigInt
-  order_status_relation order_status? @relation(fields: [id_status], references: [id]) 
+  order_status_relation order_status? @relation(fields: [id_status], references: [id])
 }
 
 model order_status {
@@ -98,7 +98,7 @@ model user_payment {
   payment_type_relation payment_type @relation(fields: [id_payment_type], references: [id])
   id_payment_type BigInt
   order_relation order @relation(fields: [id_order], references: [id])
-  id_order BigInt
+  id_order BigInt @unique
   amount Float
 }
 
