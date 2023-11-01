@@ -42,7 +42,7 @@ model admin {
 model product {
   id        BigInt      @id @default(autoincrement())
   name     String
-  price Float?
+  price Float
   image String?
   description String?
   status Boolean @default(true)
