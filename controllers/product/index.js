@@ -89,3 +89,52 @@ export const createProduct = async (req, res) => {
     res.status(400).json({ msg: error.message });
   }
 };
+
+export const updateProduct = async (req, res) => {
+  try {
+    const { name, price, description, id_measure, id_category, status } =
+      req.body;
+    const { filename } = req.file;
+
+    const existingProductId = await findProductById(req.params.id);
+
+    if (!existingProductId) {
+      // cai aqui se for diferente de null
+      throw new Error("Product not found.");
+    }
+
+    let statusFormat;
+
+    if (status == "0") {
+      statusFormat = false;
+    }
+    if (status == "1") {
+      statusFormat = true;
+    }
+
+    const updatedProduct = await db.product.update({
+      where: {
+        id: Number(req.params.id),
+      },
+      data: {
+        name: name,
+        price: Number(price),
+        description: description,
+        id_category: id_category,
+        id_measure: id_measure,
+        status: statusFormat,
+        image: filename,
+      },
+    });
+
+    Object.keys(updatedProduct).forEach((item) => {
+      if (typeof updatedProduct[item] === "bigint") {
+        updatedProduct[item] = updatedProduct[item].toString();
+      }
+    });
+
+    res.status(200).send(updatedProduct);
+  } catch (error) {
+    res.status(400).json({ msg: error.message });
+  }
+};
