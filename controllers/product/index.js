@@ -5,6 +5,7 @@ import {
   findExistingProduct,
   findProductById,
 } from "../../services/product.js";
+import { findProductInOrder } from "../../services/oder_items.js";
 import { validationResult } from "express-validator";
 
 export const getAllProducts = async (req, res) => {
@@ -151,6 +152,40 @@ export const updateProduct = async (req, res) => {
     });
 
     res.status(200).send(updatedProduct);
+  } catch (error) {
+    res.status(400).json({ msg: error.message });
+  }
+};
+
+export const deleteProduct = async (req, res) => {
+  try {
+    const existingProduct = await findProductById(req.params.id);
+
+    if (!existingProduct) {
+      throw new Error("Product not found.");
+    }
+
+    const productInOrder = await findProductInOrder(req.params.id);
+
+    if (productInOrder) {
+      throw new Error(
+        "Unable to delete product. Product has dependecies on table product_items."
+      );
+    }
+
+    const product = await db.product.delete({
+      where: {
+        id: Number(req.params.id),
+      },
+    });
+
+    Object.keys(product).forEach((item) => {
+      if (typeof product[item] === "bigint") {
+        product[item] = product[item].toString();
+      }
+    });
+
+    res.status(200).json(`Produto "${product.name.valueOf()}" removido`);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }

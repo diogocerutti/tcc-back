@@ -4,6 +4,7 @@ import {
   getOneProduct,
   createProduct,
   updateProduct,
+  deleteProduct,
 } from "../../controllers/product/index.js";
 import { productValidator } from "../../validators/productValidator.js";
 import { upload } from "../../utils/upload.js";
@@ -18,5 +19,6 @@ router.post(
 router.get("/product", getAllProducts);
 router.get("/product/:id", getOneProduct);
 router.put("/product/:id", upload.single("image"), updateProduct);
+router.delete("/product/:id", deleteProduct);
 
 export default router;
