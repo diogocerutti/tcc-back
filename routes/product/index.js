@@ -7,7 +7,6 @@ import {
 } from "../../controllers/product/index.js";
 import { productValidator } from "../../validators/productValidator.js";
 import { upload } from "../../utils/upload.js";
-
 const router = express.Router();
 
 router.post(

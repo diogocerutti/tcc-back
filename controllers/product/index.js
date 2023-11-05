@@ -1,4 +1,6 @@
 import db from "../../lib/prisma.js";
+import multer from "multer";
+
 import {
   findExistingProduct,
   findProductById,
@@ -94,7 +96,7 @@ export const updateProduct = async (req, res) => {
   try {
     const { name, price, description, id_measure, id_category, status } =
       req.body;
-    const { filename } = req.file;
+    /* const { filename } = req.file; */
 
     const existingProductId = await findProductById(req.params.id);
 
@@ -105,26 +107,41 @@ export const updateProduct = async (req, res) => {
 
     let statusFormat;
 
-    if (status == "0") {
+    if (status == "false") {
       statusFormat = false;
     }
-    if (status == "1") {
+    if (status == "true") {
       statusFormat = true;
     }
 
-    const updatedProduct = await db.product.update({
-      where: {
-        id: Number(req.params.id),
-      },
-      data: {
+    let data;
+
+    if (req.file) {
+      data = {
         name: name,
         price: Number(price),
         description: description,
         id_category: id_category,
         id_measure: id_measure,
         status: statusFormat,
-        image: filename,
+        image: req.file.filename,
+      };
+    } else {
+      data = {
+        name: name,
+        price: Number(price),
+        description: description,
+        id_category: id_category,
+        id_measure: id_measure,
+        status: statusFormat,
+      };
+    }
+
+    const updatedProduct = await db.product.update({
+      where: {
+        id: Number(req.params.id),
       },
+      data: data,
     });
 
     Object.keys(updatedProduct).forEach((item) => {
