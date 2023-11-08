@@ -129,39 +129,41 @@ export const createOrder = async (req, res) => {
 
 export const updateOrder = async (req, res) => {
   try {
-    const { id_product, quantity } = req.body;
-
     const existingOrder = await findOrderById(req.params.id);
 
     if (!existingOrder) {
       throw new Error("Order not found.");
     }
 
-    if (!id_product || !quantity) {
+    if (!req.body) {
       throw new Error("All fields are mandatory.");
     }
 
-    const existingProduct = await findProductById(id_product);
+    const existingProduct = await findManyProducts(
+      req.body.map((p) => Number(p.id_product))
+    );
 
-    if (!existingProduct) {
-      throw new Error("Product not found.");
+    if (existingProduct.length === 0) {
+      throw new Error("Products not found.");
     }
 
-    const quantityxPrice = existingProduct.price * quantity;
+    let quantityxPrice = [];
+    let total;
+
+    for (let i = 0; i < existingProduct.length; i++) {
+      quantityxPrice[i] = existingProduct[i].price * req.body[i].quantity;
+    }
+
+    total = quantityxPrice.reduce((a, c) => a + c, 0);
 
     const updatedOrder = await db.order.update({
       where: {
         id: Number(req.params.id),
       },
       data: {
-        total: { increment: quantityxPrice },
+        total: { increment: total },
         order_items_relation: {
-          create: [
-            {
-              id_product: id_product,
-              quantity: quantity,
-            },
-          ],
+          create: req.body,
         },
       },
       include: {
