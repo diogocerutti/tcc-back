@@ -7,3 +7,11 @@ export function findProductInOrder(id_product) {
     },
   });
 }
+
+export function findProductsInOrder(id_product) {
+  return db.order_items.findMany({
+    where: {
+      id_product: { in: id_product },
+    },
+  });
+}

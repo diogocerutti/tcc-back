@@ -1,6 +1,7 @@
 import db from "../../lib/prisma.js";
 import { findOrderById } from "../../services/order.js";
 import { findProductById, findManyProducts } from "../../services/product.js";
+import { findProductsInOrder } from "../../services/order_items.js";
 import { findUserById } from "../../services/user.js";
 
 export const getAllOrders = async (req, res) => {
@@ -145,6 +146,13 @@ export const updateOrder = async (req, res) => {
 
     if (existingProduct.length === 0) {
       throw new Error("Products not found.");
+    }
+
+    const productInOrder = await findProductsInOrder(
+      req.body.map((p) => Number(p.id_product))
+    );
+
+    if (productInOrder) {
     }
 
     let quantityxPrice = [];

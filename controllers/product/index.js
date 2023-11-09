@@ -5,7 +5,7 @@ import {
   findExistingProduct,
   findProductById,
 } from "../../services/product.js";
-import { findProductInOrder } from "../../services/oder_items.js";
+import { findProductInOrder } from "../../services/order_items.js";
 import { validationResult } from "express-validator";
 
 export const getAllProducts = async (req, res) => {
