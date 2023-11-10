@@ -76,6 +76,8 @@ model order {
   user_relation user @relation(fields: [id_user], references: [id])
   id_status BigInt
   order_status_relation order_status? @relation(fields: [id_status], references: [id])
+  createdAt DateTime @default(now())
+  date DateTime
 }
 
 model order_status {
