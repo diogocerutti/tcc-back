@@ -21,5 +21,8 @@ export function findManyProducts(id) {
     where: {
       id: { in: id },
     },
+    orderBy: {
+      id: "asc",
+    },
   });
 }

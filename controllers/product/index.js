@@ -1,5 +1,4 @@
 import db from "../../lib/prisma.js";
-import multer from "multer";
 
 import {
   findExistingProduct,

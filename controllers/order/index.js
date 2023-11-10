@@ -3,6 +3,7 @@ import { findOrderById } from "../../services/order.js";
 import { findProductById, findManyProducts } from "../../services/product.js";
 import { findProductsInOrder } from "../../services/order_items.js";
 import { findUserById } from "../../services/user.js";
+import { findPaymentTypeById } from "../../services/payment_type.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -71,6 +72,8 @@ export const getUserOrders = async (req, res) => {
 
 export const createOrder = async (req, res) => {
   try {
+    const { products, date, hour, id_payment_type } = req.body;
+
     const existingUser = await findUserById(req.params.id_user);
 
     if (!existingUser) {
@@ -78,18 +81,24 @@ export const createOrder = async (req, res) => {
     }
 
     const existingProduct = await findManyProducts(
-      req.body.map((p) => Number(p.id_product))
+      products.map((p) => Number(p.id_product))
     );
 
-    if (existingProduct.length === 0) {
+    if (existingProduct.length !== products.length) {
       throw new Error("Products not found.");
+    }
+
+    const existingPaymentType = await findPaymentTypeById(id_payment_type);
+
+    if (!existingPaymentType) {
+      throw new Error("Payment type not found.");
     }
 
     let quantityxPrice = [];
     let total;
 
     for (let i = 0; i < existingProduct.length; i++) {
-      quantityxPrice[i] = existingProduct[i].price * req.body[i].quantity;
+      quantityxPrice[i] = existingProduct[i].price * products[i].quantity;
     }
 
     total = quantityxPrice.reduce((a, c) => a + c, 0);
@@ -97,8 +106,10 @@ export const createOrder = async (req, res) => {
     const order = await db.order.create({
       data: {
         total: total,
+        date: date,
+        hour: hour,
         order_items_relation: {
-          create: req.body,
+          create: products,
         },
         user_relation: {
           connect: {
@@ -107,7 +118,12 @@ export const createOrder = async (req, res) => {
         },
         order_status_relation: {
           connect: {
-            id: 1,
+            id: 2, // Em preparação
+          },
+        },
+        user_payment_relation: {
+          create: {
+            id_payment_type: id_payment_type,
           },
         },
       },
@@ -115,6 +131,7 @@ export const createOrder = async (req, res) => {
         order_items_relation: true,
         user_relation: true,
         order_status_relation: true,
+        user_payment_relation: true,
       },
     });
 

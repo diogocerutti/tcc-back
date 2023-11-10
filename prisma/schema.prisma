@@ -77,8 +77,8 @@ model order {
   id_status BigInt
   order_status_relation order_status? @relation(fields: [id_status], references: [id])
   createdAt DateTime @default(now())
-  date DateTime @db.Date
-  hour DateTime @db.Time()
+  date String
+  hour String
 }
 
 model order_status {
