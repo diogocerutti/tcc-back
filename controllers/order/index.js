@@ -1,6 +1,6 @@
 import db from "../../lib/prisma.js";
 import { findOrderById } from "../../services/order.js";
-import { findProductById, findManyProducts } from "../../services/product.js";
+import { findManyProducts } from "../../services/product.js";
 import { findProductsInOrder } from "../../services/order_items.js";
 import { findUserById } from "../../services/user.js";
 import { findPaymentTypeById } from "../../services/payment_type.js";
@@ -19,12 +19,23 @@ export const getAllOrders = async (req, res) => {
         user_relation: {
           select: {
             name: true,
+            user_address_relation: {
+              select: {
+                address: true,
+                city: true,
+                postal_code: true,
+              },
+            },
           },
         },
       },
     });
 
-    Object.keys(orders).forEach((item) => {
+    const ordersFormat = JSON.stringify(orders, (key, value) =>
+      typeof value === "bigint" ? value.toString() : value
+    );
+
+    /* Object.keys(orders).forEach((item) => {
       if (orders[item].order_status_relation) {
         orders[item].order_status_relation = JSON.stringify(
           orders[item].order_status_relation
@@ -39,8 +50,8 @@ export const getAllOrders = async (req, res) => {
         }
       }
     });
-
-    res.status(200).send(orders);
+ */
+    res.status(200).send(ordersFormat);
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
@@ -48,17 +59,38 @@ export const getAllOrders = async (req, res) => {
 
 export const getUserOrders = async (req, res) => {
   try {
-    const orders = await db.order.findMany({
-      where: {
-        id_user: Number(req.params.id_user),
-      },
-    });
-
     const existingUser = await findUserById(req.params.id_user);
 
     if (!existingUser) {
       throw new Error("User not found.");
     }
+
+    const orders = await db.order.findMany({
+      where: {
+        id_user: Number(req.params.id_user),
+      },
+      select: {
+        id: true,
+        total: true,
+        order_status_relation: {
+          select: {
+            status: true,
+          },
+        },
+        user_relation: {
+          select: {
+            name: true,
+            user_address_relation: {
+              select: {
+                address: true,
+                city: true,
+                postal_code: true,
+              },
+            },
+          },
+        },
+      },
+    });
 
     const ordersFormat = JSON.stringify(orders, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
