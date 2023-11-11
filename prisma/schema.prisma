@@ -16,15 +16,15 @@ model user {
   name    String
   password String
   phone String
-  user_address_relation user_address[]
+  user_address_relation user_address?
   order_relation order[] // um user (usuário) possui vários pedidos (order) -> one-to-many
   credit_card_relation credit_card[]
 }
 
 model user_address {
   id     BigInt     @id @default(autoincrement())
-  id_user BigInt
   user_relation user @relation(fields: [id_user], references: [id])
+  id_user BigInt @unique
   address String
   city String
   postal_code String
