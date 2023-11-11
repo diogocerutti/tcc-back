@@ -81,7 +81,7 @@ export const getAllUserAddress = async (req, res) => {
       throw new Error("User not found.");
     }
 
-    const addresses = await db.user_address.findMany({
+    const addresses = await db.user_address.findUnique({
       where: {
         id_user: Number(req.params.id_user),
       },
