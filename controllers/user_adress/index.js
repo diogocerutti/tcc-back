@@ -73,7 +73,7 @@ export const updateUserAddress = async (req, res) => {
   }
 };
 
-export const getAllUserAddress = async (req, res) => {
+export const getUserAddress = async (req, res) => {
   try {
     const existingUser = await findUserById(req.params.id_user);
 
