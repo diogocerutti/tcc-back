@@ -72,6 +72,7 @@ export const getUserOrders = async (req, res) => {
       select: {
         id: true,
         total: true,
+        date: true,
         order_status_relation: {
           select: {
             status: true,
