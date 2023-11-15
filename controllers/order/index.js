@@ -73,6 +73,7 @@ export const getUserOrders = async (req, res) => {
         id: true,
         total: true,
         date: true,
+        hour: true,
         order_status_relation: {
           select: {
             status: true,
@@ -86,6 +87,17 @@ export const getUserOrders = async (req, res) => {
                 address: true,
                 city: true,
                 postal_code: true,
+              },
+            },
+          },
+        },
+        order_items_relation: {
+          select: {
+            quantity: true,
+            product_relation: {
+              select: {
+                name: true,
+                price: true,
               },
             },
           },
