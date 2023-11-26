@@ -44,15 +44,15 @@ export const updateUserAddress = async (req, res) => {
   try {
     const { address, city, postal_code } = req.body;
 
-    const existingAddress = await findUserAddressById(req.params.id);
+    const existingUser = await findUserById(req.params.id_user);
 
-    if (!existingAddress) {
-      throw new Error("Address not found.");
+    if (!existingUser) {
+      throw new Error("User not found.");
     }
 
     const updatedAddress = await db.user_address.update({
       where: {
-        id: Number(req.params.id),
+        id_user: req.params.id_user,
       },
       data: {
         address: address,
@@ -91,7 +91,11 @@ export const getUserAddress = async (req, res) => {
       typeof value === "bigint" ? value.toString() : value
     );
 
-    res.status(200).send(addressesFormat);
+    if (addresses === null) {
+      res.status(200).json({ msg: "Address not found." });
+    } else {
+      res.status(200).send(addressesFormat);
+    }
   } catch (error) {
     res.status(500).json({ msg: error.message });
   }
