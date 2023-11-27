@@ -1,9 +1,9 @@
 import db from "../../lib/prisma.js";
 import { findOrderById } from "../../services/order.js";
 import { findManyProducts } from "../../services/product.js";
-import { findProductsInOrder } from "../../services/order_items.js";
 import { findUserById } from "../../services/user.js";
 import { findPaymentTypeById } from "../../services/payment_type.js";
+import { findOrderStatusById } from "../../services/order_status.js";
 
 export const getAllOrders = async (req, res) => {
   try {
@@ -11,6 +11,29 @@ export const getAllOrders = async (req, res) => {
       select: {
         id: true,
         total: true,
+        date: true,
+        hour: true,
+        id_status: true,
+        user_payment_relation: {
+          select: {
+            payment_type_relation: {
+              select: {
+                type: true,
+              },
+            },
+          },
+        },
+        order_items_relation: {
+          select: {
+            quantity: true,
+            product_relation: {
+              select: {
+                name: true,
+                price: true,
+              },
+            },
+          },
+        },
         order_status_relation: {
           select: {
             status: true,
@@ -19,6 +42,7 @@ export const getAllOrders = async (req, res) => {
         user_relation: {
           select: {
             name: true,
+            phone: true,
             user_address_relation: {
               select: {
                 address: true,
@@ -29,28 +53,15 @@ export const getAllOrders = async (req, res) => {
           },
         },
       },
+      orderBy: {
+        id: "asc",
+      },
     });
 
     const ordersFormat = JSON.stringify(orders, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
     );
 
-    /* Object.keys(orders).forEach((item) => {
-      if (orders[item].order_status_relation) {
-        orders[item].order_status_relation = JSON.stringify(
-          orders[item].order_status_relation
-        );
-      }
-      if (orders[item].user_relation) {
-        orders[item].user_relation = JSON.stringify(orders[item].user_relation);
-      }
-      for (const key in orders[item]) {
-        if (typeof orders[item][key]) {
-          orders[item][key] = orders[item][key].toString();
-        }
-      }
-    });
- */
     res.status(200).send(ordersFormat);
   } catch (error) {
     res.status(500).json({ msg: error.message });
@@ -192,49 +203,28 @@ export const createOrder = async (req, res) => {
 
 export const updateOrder = async (req, res) => {
   try {
+    const { id_status, date, hour } = req.body;
+
     const existingOrder = await findOrderById(req.params.id);
 
     if (!existingOrder) {
       throw new Error("Order not found.");
     }
 
-    if (!req.body) {
-      throw new Error("All fields are mandatory.");
+    const existingOrderStatus = await findOrderStatusById(id_status);
+
+    if (!existingOrderStatus) {
+      throw new Error("Invalid order status.");
     }
-
-    const existingProduct = await findManyProducts(
-      req.body.map((p) => Number(p.id_product))
-    );
-
-    if (existingProduct.length === 0) {
-      throw new Error("Products not found.");
-    }
-
-    const productInOrder = await findProductsInOrder(
-      req.body.map((p) => Number(p.id_product))
-    );
-
-    if (productInOrder) {
-    }
-
-    let quantityxPrice = [];
-    let total;
-
-    for (let i = 0; i < existingProduct.length; i++) {
-      quantityxPrice[i] = existingProduct[i].price * req.body[i].quantity;
-    }
-
-    total = quantityxPrice.reduce((a, c) => a + c, 0);
 
     const updatedOrder = await db.order.update({
       where: {
         id: Number(req.params.id),
       },
       data: {
-        total: { increment: total },
-        order_items_relation: {
-          create: req.body,
-        },
+        date: date,
+        hour: hour,
+        id_status: id_status,
       },
       include: {
         order_items_relation: true,
@@ -246,33 +236,6 @@ export const updateOrder = async (req, res) => {
     );
 
     res.status(200).send(updatedOrderFormat);
-  } catch (error) {
-    res.status(400).json({ msg: error.message });
-  }
-};
-
-export const deleteMeasureType = async (req, res) => {
-  try {
-    const existingMeasure = await findMeasureById(req.params.id);
-
-    if (!existingMeasure) {
-      //res.status(404); não funcionou?
-      throw new Error("Measure type not found.");
-    }
-
-    const type = await db.measure_type.delete({
-      where: {
-        id: Number(req.params.id),
-      },
-    });
-
-    Object.keys(type).forEach((item) => {
-      if (typeof type[item] === "bigint") {
-        type[item] = type[item].toString();
-      }
-    });
-
-    res.status(200).json(`Tipo de medida "${type.type.valueOf()}" removido`);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
