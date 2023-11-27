@@ -82,13 +82,21 @@ export const getOneUser = async (req, res) => {
 };
 
 export const createUser = async (req, res) => {
-  const { name, email, password, phone } = req.body;
-
   try {
+    const { name, email, password, confirmPassword, phone } = req.body;
+
+    if (!name || !email || !password || !confirmPassword || !phone) {
+      throw new Error("Todos os campos são obrigatórios!");
+    }
+
     const existingUser = await findUserByEmail(email);
 
     if (existingUser) {
-      throw new Error("Email already in use.");
+      throw new Error("E-mail já está em uso!");
+    }
+
+    if (password !== confirmPassword) {
+      throw new Error("Senha e confirmação devem ser iguais!");
     }
 
     const user = await db.user.create({
@@ -106,7 +114,11 @@ export const createUser = async (req, res) => {
       }
     });
 
-    res.status(200).send(user);
+    const token = jwt.sign({ user }, process.env.SECRET, {
+      expiresIn: "1d",
+    });
+
+    res.status(200).json({ user, token });
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
