@@ -18,7 +18,7 @@ model user {
   phone String
   user_address_relation user_address?
   order_relation order[] // um user (usuário) possui vários pedidos (order) -> one-to-many
-  credit_card_relation credit_card[]
+  credit_card_relation credit_card?
 }
 
 model user_address {
@@ -113,11 +113,11 @@ model payment_type {
 
 model credit_card {
   id BigInt @id @default(autoincrement())
-  cpf String @unique
+  cpf String
   cvv String
-  expire_date DateTime @db.Date // tipo de dado específico (date)
+  expire_date String
   user_relation user @relation(fields: [id_user], references: [id])
-  id_user BigInt
+  id_user BigInt @unique
   name String
-  number String @unique
+  number String
 }

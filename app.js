@@ -10,6 +10,7 @@ import OrderRoutes from "./routes/order/index.js";
 import UserAddressRoutes from "./routes/user_address/index.js";
 import PaymentTypeRoutes from "./routes/payment_type/index.js";
 import UserPaymentRoutes from "./routes/user_payment/index.js";
+import CreditCardRoutes from "./routes/credit_card/index.js";
 import cors from "cors";
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use(OrderRoutes);
 app.use(UserAddressRoutes);
 app.use(PaymentTypeRoutes);
 app.use(UserPaymentRoutes);
+app.use(CreditCardRoutes);
 
 app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
 

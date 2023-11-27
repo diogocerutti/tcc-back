@@ -114,7 +114,8 @@ export const createUser = async (req, res) => {
 
 export const updateUser = async (req, res) => {
   try {
-    const { name, email, password, phone } = req.body;
+    const { name, email, password, phone, newPassword, confirmPassword } =
+      req.body;
 
     const existingUser = await findUserById(req.params.id);
 
@@ -122,10 +123,27 @@ export const updateUser = async (req, res) => {
       throw new Error("User not found.");
     }
 
-    const existingEmail = await findUserByEmail(email);
+    if (email) {
+      const existingEmail = await findUserByEmail(email);
 
-    if (existingEmail) {
-      throw new Error("Email already in use.");
+      Object.keys(existingEmail).forEach((item) => {
+        if (typeof existingEmail[item] === "bigint") {
+          existingEmail[item] = existingEmail[item].toString();
+        }
+      });
+
+      if (existingEmail.id !== req.params.id) {
+        throw new Error("E-mail já está em uso!");
+      }
+    }
+
+    const validPassword = await bcrypt.compare(password, existingUser.password);
+    if (!validPassword) {
+      throw new Error("Senha inválida!");
+    }
+
+    if (newPassword !== confirmPassword) {
+      throw new Error("Nova senha e confirmação precisam ser iguais!");
     }
 
     const user = await db.user.update({
@@ -135,7 +153,7 @@ export const updateUser = async (req, res) => {
       data: {
         name: name,
         email: email,
-        password: await hash(password, 12),
+        password: await hash(confirmPassword, 12),
         phone: phone,
       },
     });
