@@ -81,7 +81,7 @@ export const updateOrderStatus = async (req, res) => {
     const { status } = req.body;
 
     if (!status) {
-      throw new Error("Status is mandatory.");
+      throw new Error("Todos os campos são obrigatórios!");
     }
 
     const existingStatus = await findOrderStatusById(req.params.id);
@@ -93,7 +93,9 @@ export const updateOrderStatus = async (req, res) => {
     const existingStatusName = await findExistingOrderStatus(status);
 
     if (existingStatusName) {
-      throw new Error("Status already exists.");
+      if (Number(existingStatusName.id) !== Number(req.params.id)) {
+        throw new Error("Status já existe!");
+      }
     }
 
     const updatedStatus = await db.order_status.update({
@@ -133,7 +135,9 @@ export const deleteOrderStatus = async (req, res) => {
     });
 
     if (existingStatusInOrder) {
-      throw new Error("Order status has dependencies on table Order.");
+      throw new Error(
+        "Impossível excluir. O status está sendo usado em algum pedido."
+      );
     }
 
     const orderStatus = await db.order_status.delete({
