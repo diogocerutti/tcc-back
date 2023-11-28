@@ -43,7 +43,11 @@ export const loginUser = async (req, res) => {
 
 export const getAllUsers = async (req, res) => {
   try {
-    const response = await db.user.findMany();
+    const response = await db.user.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
 
     Object.keys(response).forEach((item) => {
       for (const key in response[item]) {
@@ -129,15 +133,19 @@ export const updateUser = async (req, res) => {
     const { name, email, password, phone, newPassword, confirmPassword } =
       req.body;
 
+    if (!name || !email || !password || !phone) {
+      throw new Error("Todos os campos são obrigatórios!");
+    }
+
     const existingUser = await findUserById(req.params.id);
 
     if (!existingUser) {
       throw new Error("User not found.");
     }
 
-    if (email) {
-      const existingEmail = await findUserByEmail(email);
+    const existingEmail = await findUserByEmail(email);
 
+    if (existingEmail) {
       Object.keys(existingEmail).forEach((item) => {
         if (typeof existingEmail[item] === "bigint") {
           existingEmail[item] = existingEmail[item].toString();
@@ -154,8 +162,14 @@ export const updateUser = async (req, res) => {
       throw new Error("Senha inválida!");
     }
 
-    if (newPassword !== confirmPassword) {
-      throw new Error("Nova senha e confirmação precisam ser iguais!");
+    if (newPassword) {
+      if (newPassword !== confirmPassword) {
+        throw new Error("Nova senha e confirmação precisam ser iguais!");
+      } else {
+        await hash(confirmPassword, 12);
+      }
+    } else {
+      await hash(password, 12);
     }
 
     const user = await db.user.update({
@@ -165,7 +179,7 @@ export const updateUser = async (req, res) => {
       data: {
         name: name,
         email: email,
-        password: await hash(confirmPassword, 12),
+        password: confirmPassword ? confirmPassword : password,
         phone: phone,
       },
     });
@@ -176,7 +190,7 @@ export const updateUser = async (req, res) => {
       }
     });
 
-    res.status(200).send(user);
+    res.status(200).send("user");
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
