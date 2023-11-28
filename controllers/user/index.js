@@ -165,11 +165,7 @@ export const updateUser = async (req, res) => {
     if (newPassword) {
       if (newPassword !== confirmPassword) {
         throw new Error("Nova senha e confirmação precisam ser iguais!");
-      } else {
-        await hash(confirmPassword, 12);
       }
-    } else {
-      await hash(password, 12);
     }
 
     const user = await db.user.update({
@@ -179,7 +175,9 @@ export const updateUser = async (req, res) => {
       data: {
         name: name,
         email: email,
-        password: confirmPassword ? confirmPassword : password,
+        password: confirmPassword
+          ? await hash(confirmPassword, 12)
+          : await hash(password, 12),
         phone: phone,
       },
     });
@@ -190,7 +188,58 @@ export const updateUser = async (req, res) => {
       }
     });
 
-    res.status(200).send("user");
+    res.status(200).send(user);
+  } catch (error) {
+    res.status(400).json({ msg: error.message });
+  }
+};
+
+export const updateUserByAdmin = async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+
+    if (!name || !email || !phone) {
+      throw new Error("Todos os campos são obrigatórios!");
+    }
+
+    const existingUser = await findUserById(req.params.id);
+
+    if (!existingUser) {
+      throw new Error("User not found.");
+    }
+
+    const existingEmail = await findUserByEmail(email);
+
+    if (existingEmail) {
+      Object.keys(existingEmail).forEach((item) => {
+        if (typeof existingEmail[item] === "bigint") {
+          existingEmail[item] = existingEmail[item].toString();
+        }
+      });
+
+      if (existingEmail.id !== req.params.id) {
+        throw new Error("E-mail já está em uso!");
+      }
+    }
+
+    const user = await db.user.update({
+      where: {
+        id: Number(req.params.id),
+      },
+      data: {
+        name: name,
+        email: email,
+        phone: phone,
+      },
+    });
+
+    Object.keys(user).forEach((item) => {
+      if (typeof user[item] === "bigint") {
+        user[item] = user[item].toString();
+      }
+    });
+
+    res.status(200).send(user);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
@@ -202,6 +251,40 @@ export const deleteUser = async (req, res) => {
 
     if (!existingUser) {
       throw new Error("User not found.");
+    }
+
+    const existingUserInOrder = await db.order.findFirst({
+      where: {
+        id_user: { equals: req.params.id },
+      },
+    });
+
+    if (existingUserInOrder) {
+      throw new Error("Impossível excluir. O usuário possui pedidos.");
+    }
+
+    const existingUserAddress = await db.user_address.findFirst({
+      where: {
+        id_user: { equals: req.params.id },
+      },
+    });
+
+    if (existingUserAddress) {
+      throw new Error(
+        "Impossível excluir. O usuário possui endereço cadastrado."
+      );
+    }
+
+    const existingUserCreditCard = await db.credit_card.findFirst({
+      where: {
+        id_user: { equals: req.params.id },
+      },
+    });
+
+    if (existingUserCreditCard) {
+      throw new Error(
+        "Impossível excluir. O usuário possui cartão de crédito cadastrado."
+      );
     }
 
     const user = await db.user.delete({
@@ -216,7 +299,7 @@ export const deleteUser = async (req, res) => {
       }
     });
 
-    res.status(200).json(`Usuário de ID = ${user.id} removido`);
+    res.status(200).json(`Usuário de ID = ${user.id} removido!`);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
