@@ -1,9 +1,9 @@
 import db from "../lib/prisma.js";
 
-export function findExistingMeasure(type) {
+export function findExistingMeasure(measure) {
   return db.measure_type.findFirst({
     where: {
-      type: type,
+      measure: measure,
     },
   });
 }

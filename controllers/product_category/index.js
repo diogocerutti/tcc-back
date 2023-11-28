@@ -154,7 +154,9 @@ export const deleteProductCategory = async (req, res) => {
 
     res
       .status(200)
-      .json(`Categoria de produto "${category.category.valueOf()}" removida`);
+      .json(
+        `Categoria de produto "${category.category.valueOf()}" removida com sucesso!`
+      );
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }

@@ -6,7 +6,11 @@ import {
 
 export const getAllMeasures = async (req, res) => {
   try {
-    const measures = await db.measure_type.findMany();
+    const measures = await db.measure_type.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
 
     const measuresFormat = JSON.stringify(measures, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
@@ -42,23 +46,22 @@ export const getOneMeasure = async (req, res) => {
 
 export const createMeasureType = async (req, res) => {
   try {
-    const { type } = req.body;
+    const { measure } = req.body;
 
-    if (!type) {
-      res.status(400);
-      throw new Error("Type is mandatory.");
+    if (!measure) {
+      throw new Error("Unidade de medida é obrigatória!");
     }
 
-    const existingMeasure = await findExistingMeasure(type);
+    const existingMeasure = await findExistingMeasure(measure);
 
     if (existingMeasure) {
       // cai aqui se for diferente de null
-      throw new Error("Measure already exists.");
+      throw new Error("Unidade de medida já existe!");
     }
 
     const measure_type = await db.measure_type.create({
       data: {
-        type,
+        measure,
       },
     });
 
@@ -76,17 +79,24 @@ export const createMeasureType = async (req, res) => {
 
 export const updateMeasureType = async (req, res) => {
   try {
-    const { type } = req.body;
+    const { measure } = req.body;
 
-    if (!type) {
-      throw new Error("Type is mandatory.");
+    if (!measure) {
+      throw new Error("Unidade de medida é obrigatória!");
     }
 
     const existingMeasure = await findMeasureById(req.params.id);
 
     if (!existingMeasure) {
-      res.status(404);
       throw new Error("Measure type not found.");
+    }
+
+    const existingMeasureName = await findExistingMeasure(measure);
+
+    if (existingMeasureName) {
+      if (Number(existingMeasureName.id) !== Number(req.params.id)) {
+        throw new Error("Unidade de medida já existe!");
+      }
     }
 
     const updatedMeasure = await db.measure_type.update({
@@ -94,7 +104,7 @@ export const updateMeasureType = async (req, res) => {
         id: Number(req.params.id),
       },
       data: {
-        type: type,
+        measure: measure,
       },
     });
 
@@ -115,23 +125,38 @@ export const deleteMeasureType = async (req, res) => {
     const existingMeasure = await findMeasureById(req.params.id);
 
     if (!existingMeasure) {
-      //res.status(404); não funcionou?
       throw new Error("Measure type not found.");
     }
 
-    const type = await db.measure_type.delete({
+    const existingMeasureInProduct = await db.product.findFirst({
+      where: {
+        id_measure: { equals: req.params.id },
+      },
+    });
+
+    if (existingMeasureInProduct) {
+      throw new Error(
+        "Impossível excluir. A unidade de medida está sendo usada em algum produto."
+      );
+    }
+
+    const measure = await db.measure_type.delete({
       where: {
         id: Number(req.params.id),
       },
     });
 
-    Object.keys(type).forEach((item) => {
-      if (typeof type[item] === "bigint") {
-        type[item] = type[item].toString();
+    Object.keys(measure).forEach((item) => {
+      if (typeof measure[item] === "bigint") {
+        measure[item] = measure[item].toString();
       }
     });
 
-    res.status(200).json(`Tipo de medida "${type.type.valueOf()}" removido`);
+    res
+      .status(200)
+      .json(
+        `Unidade de medida "${measure.measure.valueOf()}" removida com sucesso!`
+      );
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
