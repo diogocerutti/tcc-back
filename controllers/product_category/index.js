@@ -6,7 +6,11 @@ import {
 
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await db.product_category.findMany();
+    const categories = await db.product_category.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
 
     const categoriesFormat = JSON.stringify(categories, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
@@ -26,7 +30,7 @@ export const getOneCategory = async (req, res) => {
       },
     });
 
-    if (category == null) {
+    if (category === null) {
       throw new Error("Category not found.");
     }
 
@@ -45,15 +49,14 @@ export const createProductCategory = async (req, res) => {
     const { category } = req.body;
 
     if (!category) {
-      res.status(400);
-      throw new Error("Category is mandatory.");
+      throw new Error("Categoria de produto é obrigatória!");
     }
 
     const existingCategory = await findExistingCategory(category);
 
     if (existingCategory) {
       // cai aqui se for diferente de null
-      throw new Error("Category already exists.");
+      throw new Error("Categoria de produto já existe!");
     }
 
     const product_category = await db.product_category.create({
@@ -79,14 +82,21 @@ export const updateProductCategory = async (req, res) => {
     const { category } = req.body;
 
     if (!category) {
-      throw new Error("Category is mandatory.");
+      throw new Error("Categoria de produto é obrigatória!");
     }
 
     const existingCategory = await findCategoryById(req.params.id);
 
     if (!existingCategory) {
-      res.status(404);
       throw new Error("Category not found.");
+    }
+
+    const existingCategoryName = await findExistingCategory(category);
+
+    if (existingCategoryName) {
+      if (Number(existingCategoryName.id) !== Number(req.params.id)) {
+        throw new Error("Categoria de produto já existe!");
+      }
     }
 
     const updatedCategory = await db.product_category.update({
@@ -115,8 +125,19 @@ export const deleteProductCategory = async (req, res) => {
     const existingCategory = await findCategoryById(req.params.id);
 
     if (!existingCategory) {
-      //res.status(404); não funcionou?
       throw new Error("Category not found.");
+    }
+
+    const existingCategoryInProduct = await db.product.findFirst({
+      where: {
+        id_category: { equals: req.params.id },
+      },
+    });
+
+    if (existingCategoryInProduct) {
+      throw new Error(
+        "Impossível excluir. A categoria de produto está sendo usada em algum produto."
+      );
     }
 
     const category = await db.product_category.delete({

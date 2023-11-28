@@ -9,14 +9,14 @@ export const createPaymentType = async (req, res) => {
     const { type } = req.body;
 
     if (!type) {
-      throw new Error("Type is required.");
+      throw new Error("Tipo de pagamento é obrigatório!");
     }
 
     const existingType = await findExistingPaymentType(type);
 
     if (existingType) {
       // cai aqui se for diferente de null
-      throw new Error("Payment type already exists.");
+      throw new Error("Tipo de pagamento já existe!");
     }
 
     const payment_type = await db.payment_type.create({
@@ -42,13 +42,21 @@ export const updatePaymentType = async (req, res) => {
     const { type } = req.body;
 
     if (!type) {
-      throw new Error("Type is required");
+      throw new Error("Tipo de pagamento é obrigatório!");
     }
 
     const existingType = await findPaymentTypeById(req.params.id);
 
     if (!existingType) {
       throw new Error("Payment type not found.");
+    }
+
+    const existingTypeName = await findExistingPaymentType(type);
+
+    if (existingTypeName) {
+      if (Number(existingTypeName.id) !== Number(req.params.id)) {
+        throw new Error("Tipo de pagamento já existe!");
+      }
     }
 
     const updatedType = await db.payment_type.update({
@@ -74,7 +82,11 @@ export const updatePaymentType = async (req, res) => {
 
 export const getAllPaymentTypes = async (req, res) => {
   try {
-    const types = await db.payment_type.findMany();
+    const types = await db.payment_type.findMany({
+      orderBy: {
+        id: "asc",
+      },
+    });
 
     const typesFormat = JSON.stringify(types, (key, value) =>
       typeof value === "bigint" ? value.toString() : value
@@ -116,6 +128,18 @@ export const deletePaymentType = async (req, res) => {
       throw new Error("Payment type not found.");
     }
 
+    const existingTypeInUserPayment = await db.user_payment.findFirst({
+      where: {
+        id_payment_type: { equals: req.params.id },
+      },
+    });
+
+    if (existingTypeInUserPayment) {
+      throw new Error(
+        "Impossível excluir. O tipo de pagamento está sendo usado em algum pedido."
+      );
+    }
+
     const type = await db.payment_type.delete({
       where: {
         id: Number(req.params.id),
@@ -128,7 +152,9 @@ export const deletePaymentType = async (req, res) => {
       }
     });
 
-    res.status(200).json(`Tipo de pagamento "${type.type.valueOf()}" removido`);
+    res
+      .status(200)
+      .json(`Tipo de pagamento "${type.type.valueOf()}" removido com sucesso.`);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
