@@ -7,3 +7,11 @@ export function findUserAddressById(id) {
     },
   });
 }
+
+export function findUserAddressByIdUser(id_user) {
+  return db.user_address.findUnique({
+    where: {
+      id_user,
+    },
+  });
+}

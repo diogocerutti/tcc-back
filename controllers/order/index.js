@@ -2,6 +2,7 @@ import db from "../../lib/prisma.js";
 import { findOrderById } from "../../services/order.js";
 import { findManyProducts } from "../../services/product.js";
 import { findUserById } from "../../services/user.js";
+import { findUserAddressByIdUser } from "../../services/user_address.js";
 import { findPaymentTypeById } from "../../services/payment_type.js";
 import { findOrderStatusById } from "../../services/order_status.js";
 
@@ -159,11 +160,20 @@ export const createOrder = async (req, res) => {
 
     total = quantityxPrice.reduce((a, c) => a + c, 0);
 
+    const userAddress = await findUserAddressByIdUser(req.params.id_user);
+
+    if (!userAddress) {
+      throw new Error("Endereço não encontrado!");
+    }
+
     const order = await db.order.create({
       data: {
         total: total,
         date: date,
         hour: hour,
+        address: userAddress.address,
+        city: userAddress.city,
+        postal_code: userAddress.postal_code,
         order_items_relation: {
           create: products,
         },
