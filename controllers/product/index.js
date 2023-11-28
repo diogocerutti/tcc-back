@@ -10,7 +10,7 @@ import { validationResult } from "express-validator";
 export const getAllProducts = async (req, res) => {
   try {
     const products =
-      await db.$queryRaw`SELECT product.id, name, price, description, image, id_category, id_measure, category, measure, status FROM product INNER JOIN product_category ON product.id_category=product_category.id INNER JOIN measure_type ON product.id_measure=measure_type.id`;
+      await db.$queryRaw`SELECT product.id, name, price, description, image, id_category, id_measure, category, measure, status FROM product INNER JOIN product_category ON product.id_category=product_category.id INNER JOIN measure_type ON product.id_measure=measure_type.id ORDER BY product.id ASC`;
 
     Object.keys(products).forEach((item) => {
       for (const key in products[item]) {
@@ -168,7 +168,7 @@ export const deleteProduct = async (req, res) => {
 
     if (productInOrder) {
       throw new Error(
-        "Unable to delete product. Product has dependecies on table product_items."
+        "Impossível excluir. O produto possui está sendo usado em algum pedido!"
       );
     }
 
