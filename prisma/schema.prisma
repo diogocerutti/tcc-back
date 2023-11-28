@@ -79,6 +79,9 @@ model order {
   createdAt DateTime @default(now())
   date String
   hour String
+  address String
+  city String
+  postal_code String
 }
 
 model order_status {
