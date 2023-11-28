@@ -49,13 +49,13 @@ export const createOrderStatus = async (req, res) => {
     const { status } = req.body;
 
     if (!status) {
-      throw new Error("Status is mandatory.");
+      throw new Error("Status é obrigatório.");
     }
 
     const existingStatus = await findExistingOrderStatus(status);
 
     if (existingStatus) {
-      throw new Error("Status already exists.");
+      throw new Error("Status de pedido já existe!");
     }
 
     const orderStatus = await db.order_status.create({
