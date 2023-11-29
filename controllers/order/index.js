@@ -14,6 +14,9 @@ export const getAllOrders = async (req, res) => {
         total: true,
         date: true,
         hour: true,
+        address: true,
+        city: true,
+        postal_code: true,
         id_status: true,
         user_payment_relation: {
           select: {
@@ -44,13 +47,6 @@ export const getAllOrders = async (req, res) => {
           select: {
             name: true,
             phone: true,
-            user_address_relation: {
-              select: {
-                address: true,
-                city: true,
-                postal_code: true,
-              },
-            },
           },
         },
       },
