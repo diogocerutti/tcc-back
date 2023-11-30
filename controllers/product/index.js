@@ -107,10 +107,10 @@ export const updateProduct = async (req, res) => {
 
     let statusFormat;
 
-    if (status == "false") {
+    if (status === "false") {
       statusFormat = false;
     }
-    if (status == "true") {
+    if (status === "true") {
       statusFormat = true;
     }
 
