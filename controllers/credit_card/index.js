@@ -129,7 +129,7 @@ export const deleteUserCreditCard = async (req, res) => {
     const existingCreditCard = await findUserCreditCard(req.params.id_user);
 
     if (!existingCreditCard) {
-      throw new Error("No Credit Cards found for this User!");
+      throw new Error("Cartão de crédito não encontrado!");
     }
 
     const credit_card = await db.credit_card.delete({

@@ -165,8 +165,11 @@ export const createOrder = async (req, res) => {
 
     const userCreditCard = await findUserCreditCard(req.params.id_user);
 
-    if (!userCreditCard) {
-      throw new Error("Cartão de crédito não cadastrado!");
+    if (id_payment_type === 1) {
+      //crédito
+      if (!userCreditCard) {
+        throw new Error("Cartão de crédito não cadastrado!");
+      }
     }
 
     const order = await db.order.create({

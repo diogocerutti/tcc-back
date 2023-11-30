@@ -1,6 +1,6 @@
 import db from "../../lib/prisma.js";
 import { findUserById } from "../../services/user.js";
-import { findUserAddressById } from "../../services/user_address.js";
+import { findUserAddressByIdUser } from "../../services/user_address.js";
 
 export const createUserAddress = async (req, res) => {
   try {
@@ -103,15 +103,15 @@ export const getUserAddress = async (req, res) => {
 
 export const deleteUserAddress = async (req, res) => {
   try {
-    const existingAddress = await findUserAddressById(req.params.id);
+    const existingAddress = await findUserAddressByIdUser(req.params.id_user);
 
     if (!existingAddress) {
-      throw new Error("Address not found.");
+      throw new Error("Endereço não encontrado!");
     }
 
     const address = await db.user_address.delete({
       where: {
-        id: Number(req.params.id),
+        id_user: Number(req.params.id_user),
       },
     });
 
@@ -121,7 +121,7 @@ export const deleteUserAddress = async (req, res) => {
       }
     });
 
-    res.status(200).json(`Endereço removido.`);
+    res.status(200).json("Endereço removido com sucesso!");
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
