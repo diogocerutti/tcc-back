@@ -46,9 +46,6 @@ export const loginAdmin = async (req, res) => {
 export const getAllAdmins = async (req, res) => {
   try {
     const response = await db.admin.findMany({
-      where: {
-        status: true, // somente ativos
-      },
       orderBy: {
         id: "asc",
       },
