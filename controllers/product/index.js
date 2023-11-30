@@ -1,9 +1,5 @@
 import db from "../../lib/prisma.js";
-
-import {
-  findExistingProduct,
-  findProductById,
-} from "../../services/product.js";
+import { findProductById } from "../../services/product.js";
 import { findProductInOrder } from "../../services/order_items.js";
 import { validationResult } from "express-validator";
 
@@ -52,13 +48,9 @@ export const getOneProduct = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     const { name, price, description, id_category, id_measure } = req.body;
-    const { filename } = req.file;
 
-    const existingProduct = await findExistingProduct(name);
-
-    if (existingProduct) {
-      // cai aqui se for diferente de null
-      throw new Error("Product already exists.");
+    if (!price || !description || !id_measure || !id_category) {
+      throw new Error("Todos os campos são obrigatórios!");
     }
 
     const result = validationResult(req);
@@ -70,7 +62,7 @@ export const createProduct = async (req, res) => {
           name: name,
           price: Number(price),
           description: description,
-          image: filename,
+          image: req.file ? req.file.filename : "noimage.png",
           status: true,
           id_category: id_category,
           id_measure: id_measure,
@@ -96,22 +88,16 @@ export const updateProduct = async (req, res) => {
   try {
     const { name, price, description, id_measure, id_category, status } =
       req.body;
-    /* const { filename } = req.file; */
+
+    if (!name || !price || !description || !id_measure || !id_category) {
+      throw new Error("Todos os campos são obrigatórios!");
+    }
 
     const existingProductId = await findProductById(req.params.id);
 
     if (!existingProductId) {
       // cai aqui se for diferente de null
       throw new Error("Product not found.");
-    }
-
-    let statusFormat;
-
-    if (status === "false") {
-      statusFormat = false;
-    }
-    if (status === "true") {
-      statusFormat = true;
     }
 
     let data;
@@ -123,7 +109,7 @@ export const updateProduct = async (req, res) => {
         description: description,
         id_category: id_category,
         id_measure: id_measure,
-        status: statusFormat,
+        status: status,
         image: req.file.filename,
       };
     } else {
@@ -133,7 +119,7 @@ export const updateProduct = async (req, res) => {
         description: description,
         id_category: id_category,
         id_measure: id_measure,
-        status: statusFormat,
+        status: status,
       };
     }
 
@@ -168,7 +154,7 @@ export const deleteProduct = async (req, res) => {
 
     if (productInOrder) {
       throw new Error(
-        "Impossível excluir. O produto possui está sendo usado em algum pedido!"
+        "Impossível excluir. O produto está sendo usado em algum pedido!"
       );
     }
 
@@ -184,7 +170,9 @@ export const deleteProduct = async (req, res) => {
       }
     });
 
-    res.status(200).json(`Produto "${product.name.valueOf()}" removido`);
+    res
+      .status(200)
+      .json(`Produto "${product.name.valueOf()}" removido com sucesso!`);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
