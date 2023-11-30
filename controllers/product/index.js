@@ -1,7 +1,6 @@
 import db from "../../lib/prisma.js";
 import { findProductById } from "../../services/product.js";
 import { findProductInOrder } from "../../services/order_items.js";
-import { validationResult } from "express-validator";
 
 export const getAllProducts = async (req, res) => {
   try {
@@ -10,7 +9,10 @@ export const getAllProducts = async (req, res) => {
 
     Object.keys(products).forEach((item) => {
       for (const key in products[item]) {
-        if (typeof products[item][key]) {
+        if (
+          typeof products[item][key] === "bigint" ||
+          typeof products[item][key] === "number"
+        ) {
           products[item][key] = products[item][key].toString();
         }
       }
@@ -49,7 +51,13 @@ export const createProduct = async (req, res) => {
   try {
     const { name, price, description, id_category, id_measure } = req.body;
 
-    if (!price || !description || !id_measure || !id_category) {
+    if (
+      !price ||
+      price === "0" ||
+      !description ||
+      !id_measure ||
+      !id_category
+    ) {
       throw new Error("Todos os campos são obrigatórios!");
     }
 
@@ -102,7 +110,7 @@ export const updateProduct = async (req, res) => {
         description: description,
         id_category: id_category,
         id_measure: id_measure,
-        status: status,
+        status: status === "true" ? true : false,
         image: req.file.filename,
       };
     } else {
@@ -112,7 +120,7 @@ export const updateProduct = async (req, res) => {
         description: description,
         id_category: id_category,
         id_measure: id_measure,
-        status: status,
+        status: status === "true" ? true : false,
       };
     }
 

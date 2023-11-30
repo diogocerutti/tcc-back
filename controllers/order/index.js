@@ -3,6 +3,7 @@ import { findOrderById } from "../../services/order.js";
 import { findManyProducts } from "../../services/product.js";
 import { findUserById } from "../../services/user.js";
 import { findUserAddressByIdUser } from "../../services/user_address.js";
+import { findUserCreditCard } from "../../services/credit_card.js";
 import { findPaymentTypeById } from "../../services/payment_type.js";
 import { findOrderStatusById } from "../../services/order_status.js";
 
@@ -160,6 +161,12 @@ export const createOrder = async (req, res) => {
 
     if (!userAddress) {
       throw new Error("Endereço não encontrado!");
+    }
+
+    const userCreditCard = await findUserCreditCard(req.params.id_user);
+
+    if (!userCreditCard) {
+      throw new Error("Cartão de crédito não cadastrado!");
     }
 
     const order = await db.order.create({
