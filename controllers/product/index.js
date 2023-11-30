@@ -53,32 +53,25 @@ export const createProduct = async (req, res) => {
       throw new Error("Todos os campos são obrigatórios!");
     }
 
-    const result = validationResult(req);
+    const product = await db.product.create({
+      data: {
+        name: name,
+        price: Number(price),
+        description: description,
+        image: req.file ? req.file.filename : "noimage.png",
+        status: true,
+        id_category: id_category,
+        id_measure: id_measure,
+      },
+    });
 
-    if (result.isEmpty()) {
-      // se não houver erros
-      const product = await db.product.create({
-        data: {
-          name: name,
-          price: Number(price),
-          description: description,
-          image: req.file ? req.file.filename : "noimage.png",
-          status: true,
-          id_category: id_category,
-          id_measure: id_measure,
-        },
-      });
+    Object.keys(product).forEach((item) => {
+      if (typeof product[item] === "bigint") {
+        product[item] = product[item].toString();
+      }
+    });
 
-      Object.keys(product).forEach((item) => {
-        if (typeof product[item] === "bigint") {
-          product[item] = product[item].toString();
-        }
-      });
-
-      res.status(200).send(product);
-    } else {
-      res.send(result.errors.map((err) => err.msg));
-    }
+    res.status(200).send(product);
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }
